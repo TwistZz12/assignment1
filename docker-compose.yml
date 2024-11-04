@@ -10,6 +10,8 @@ services:
     networks:
       - MoviesAPI-MongoDB
       - MongoDB-MongoExpress
+    volumes:
+      - mongo-data:/data/db 
 
   mongo-express:
     image: mongo-express:1.0-20-alpine3.19
@@ -37,7 +39,7 @@ services:
     ports:
       - '9000:9000'
     environment:
-      MONGODB_URI: mongodb://your_mongo_username:your_mongo_password@mongo:27017
+      MONGODB_URI: mongodb://admin:password@mongo:27017
       REDIS_URI: redis://redis:6379
       ENABLE_WRITING_HANDLERS: 'false'
     depends_on:
@@ -47,6 +49,20 @@ services:
       - Redis-MoviesAPI
       - MoviesAPI-MongoDB
 
+  seed:
+    image: node:current-alpine
+    container_name: seed
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["node", "seed.js"]
+    environment:
+      MONGODB_URI: mongodb://admin:password@mongo:27017
+    networks:
+      - MoviesAPI-MongoDB
+
 networks:
   Redis-MoviesAPI:
     driver: bridge
@@ -54,3 +70,6 @@ networks:
     driver: bridge
   MongoDB-MongoExpress:
     driver: bridge
+
+volumes:
+  mongo-data:
